@@ -1,0 +1,44 @@
+name: salesforce deploy ci
+on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        type: environment
+        required: true
+
+jobs:
+  deploy_to_org:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Make temporary directory
+        run: |
+          mkdir ./temp
+
+      # Install Salesforce CLI
+      - name: Install Salesforce CLI
+        run: |
+          wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
+          mkdir ./temp/sfdx-cli
+          tar xJf sfdx-linux-x64.tar.xz -C ./temp/sfdx-cli --strip-components 1
+          echo "./temp/sfdx-cli/bin" >> $GITHUB_PATH
+      - name: Display sfdx version
+        run: sf version
+
+      # Save into private-key
+      - name: Save into private-key
+        run: echo -n ${{ secrets.PRIVATE_KEY_BASE64ED }} | base64 -d > ./temp/server.key
+
+      # Authenticate to access the org
+      - name: Authenticate to access the org
+        run: sf org login jwt --instanceurl=https://login.salesforce.com/ --jwtkeyfile ./temp/server.key --username ${{ secrets.ORG_USER }} --clientid ${{ secrets.CLIENT_ID }} --set-default
+
+      # Deploy to the org
+      - name: Deploy to the org
+        run: 
+          sf project deploy start --source-dir ${{ github.workspace }}/force-app
