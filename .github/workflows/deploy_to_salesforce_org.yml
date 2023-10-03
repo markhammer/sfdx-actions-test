@@ -36,7 +36,7 @@ jobs:
 
       # Authenticate to access the org
       - name: Authenticate to access the org
-        run: sf org login jwt --instanceurl=https://login.salesforce.com/ --jwtkeyfile ./temp/server.key --username ${{ secrets.ORG_USER }} --clientid ${{ secrets.CLIENT_ID }}
+        run: sf org login jwt --instanceurl=https://login.salesforce.com/ --jwtkeyfile ./temp/server.key --username ${{ secrets.ORG_USER }} --clientid ${{ secrets.CLIENT_ID }} --set-default
 
       # Deploy to the org
       - name: Deploy to the org
